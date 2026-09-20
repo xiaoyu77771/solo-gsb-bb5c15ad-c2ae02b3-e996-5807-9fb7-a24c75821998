@@ -1,0 +1,21 @@
+services:
+  desensitize-api:
+    build: .
+    image: desensitize-api:latest
+    container_name: desensitize-api
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      # Bind address inside the container.
+      HOST: 0.0.0.0
+      # Container listening port; the host side maps ${PORT:-8000} to it.
+      PORT: 8000
+      # Uvicorn worker processes (in-memory, stateless: any value is safe).
+      WORKERS: "${WORKERS:-1}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; import sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
